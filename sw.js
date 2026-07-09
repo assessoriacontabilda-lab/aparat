@@ -1,4 +1,4 @@
-const CACHE = 'aparat-v3';
+const CACHE = 'aparat-v4';
 const ASSETS = ['./', 'index.html', 'manifest.json', 'brasao-aparat.png', 'logo-aparat.png', 'icon-192.png', 'icon-512.png'];
 
 self.addEventListener('install', e => {

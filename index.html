@@ -717,16 +717,19 @@ function renderDocs(){
   }).join('');
 }
 function gerarPDF(html,fname){
-  if(typeof html2pdf==='undefined'){alert('Não foi possível carregar o gerador de PDF. Verifique a conexão com a internet e tente novamente.');return}
+  if(typeof html2pdf==='undefined'){alert('Não foi possível carregar o gerador de PDF. Verifique sua conexão e tente novamente.');return}
+  const ov=document.createElement('div');
+  ov.style.cssText='position:fixed;inset:0;z-index:99999;background:#ffffff;overflow:auto;padding:16px;display:flex;justify-content:center;align-items:flex-start';
   const wrap=document.createElement('div');
-  wrap.style.cssText='position:absolute;left:-10000px;top:0;width:800px;background:#fff;padding:0';
+  wrap.style.cssText='width:760px;max-width:100%;background:#fff';
   wrap.innerHTML=html;
-  document.body.appendChild(wrap);
+  ov.appendChild(wrap);
+  document.body.appendChild(ov);
   const imgs=Array.prototype.slice.call(wrap.querySelectorAll('img'));
-  const ready=Promise.all(imgs.map(function(im){return im.complete?Promise.resolve():new Promise(function(r){im.onload=im.onerror=r;});}));
-  ready.then(function(){
-    return html2pdf().set({margin:[6,6,6,6],filename:fname+'.pdf',image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0,windowWidth:820},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','avoid-all']}}).from(wrap).save();
-  }).then(function(){wrap.remove();}).catch(function(){wrap.remove();});
+  const ready=Promise.all(imgs.map(function(im){return (im.complete&&im.naturalWidth>0)?Promise.resolve():new Promise(function(r){im.onload=im.onerror=r;});}));
+  ready.then(function(){return new Promise(function(r){setTimeout(r,180);});}).then(function(){
+    return html2pdf().set({margin:[6,6,6,6],filename:fname+'.pdf',image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','avoid-all']}}).from(wrap).save();
+  }).then(function(){ov.remove();}).catch(function(){ov.remove();});
 }
 function baixarPDFProposta(){
   gerarPDF(document.getElementById('pront-content').innerHTML,'Proposta_'+((S.nome||'cliente').replace(/[^a-z0-9]/gi,'_')));

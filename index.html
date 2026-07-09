@@ -593,12 +593,14 @@ function renderPront(){
           <th style="text-align:right;padding:7px 8px;border:1px solid var(--border)">Imposto/mês</th>
           <th style="text-align:right;padding:7px 8px;border:1px solid var(--border)">Imposto/ano</th>
           <th style="text-align:right;padding:7px 8px;border:1px solid var(--border)">Alíquota</th>
+          <th style="text-align:right;padding:7px 8px;border:1px solid var(--border)">Honorário/mês</th>
         </tr></thead><tbody>
         ${results.map(r=>{const isRec=rec&&r.id===rec.id;const bg=isRec?'background:var(--ok-bg)':(!r.ok?'background:#F3F4F6;color:#9CA3AF':'');return `<tr style="${bg}">
           <td style="padding:7px 8px;border:1px solid var(--border)"><strong>${r.nome}</strong>${isRec?' <span style="color:var(--ok);font-weight:700">✓ Indicado</span>':''}${!r.ok?' <span style="font-size:9px">(indisponível)</span>':''}<div style="font-size:9px;color:var(--muted)">${r.ok?r.det:r.motivo}</div></td>
           <td style="padding:7px 8px;border:1px solid var(--border);text-align:right">${r.ok&&r.impAnual?'R$ '+Math.round(r.impAnual/12).toLocaleString('pt-BR'):'—'}</td>
           <td style="padding:7px 8px;border:1px solid var(--border);text-align:right">${r.ok&&r.impAnual?'R$ '+Math.round(r.impAnual).toLocaleString('pt-BR'):'—'}</td>
           <td style="padding:7px 8px;border:1px solid var(--border);text-align:right">${r.ok&&r.aliq!=null?r.aliq.toFixed(1)+'%':'—'}</td>
+          <td style="padding:7px 8px;border:1px solid var(--border);text-align:right">${r.ok?'R$ '+r.hon.toLocaleString('pt-BR'):'—'}</td>
         </tr>`}).join('')}
         </tbody></table>
         ${econ>0?`<div style="margin-top:6px;font-size:11px;color:var(--ok)"><strong>Economia estimada:</strong> optando pelo ${rec.nome} em vez do regime mais oneroso, economia de aprox. <strong>R$ ${Math.round(econ).toLocaleString('pt-BR')}/ano</strong>.</div>`:''}
@@ -717,10 +719,14 @@ function renderDocs(){
 function gerarPDF(html,fname){
   if(typeof html2pdf==='undefined'){alert('Não foi possível carregar o gerador de PDF. Verifique a conexão com a internet e tente novamente.');return}
   const wrap=document.createElement('div');
-  wrap.style.cssText='width:794px;background:#fff;position:fixed;left:-9999px;top:0';
+  wrap.style.cssText='position:absolute;left:-10000px;top:0;width:800px;background:#fff;padding:0';
   wrap.innerHTML=html;
   document.body.appendChild(wrap);
-  html2pdf().set({margin:[6,6,6,6],filename:fname+'.pdf',image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true,backgroundColor:'#ffffff'},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','avoid-all']}}).from(wrap).save().then(()=>wrap.remove()).catch(()=>wrap.remove());
+  const imgs=Array.prototype.slice.call(wrap.querySelectorAll('img'));
+  const ready=Promise.all(imgs.map(function(im){return im.complete?Promise.resolve():new Promise(function(r){im.onload=im.onerror=r;});}));
+  ready.then(function(){
+    return html2pdf().set({margin:[6,6,6,6],filename:fname+'.pdf',image:{type:'jpeg',quality:0.98},html2canvas:{scale:2,useCORS:true,allowTaint:true,backgroundColor:'#ffffff',scrollX:0,scrollY:0,windowWidth:820},jsPDF:{unit:'mm',format:'a4',orientation:'portrait'},pagebreak:{mode:['css','avoid-all']}}).from(wrap).save();
+  }).then(function(){wrap.remove();}).catch(function(){wrap.remove();});
 }
 function baixarPDFProposta(){
   gerarPDF(document.getElementById('pront-content').innerHTML,'Proposta_'+((S.nome||'cliente').replace(/[^a-z0-9]/gi,'_')));

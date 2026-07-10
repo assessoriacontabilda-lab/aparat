@@ -240,6 +240,30 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
 .doc-btn{font-size:11px;padding:6px 12px;white-space:nowrap}
 .doc-del{color:#DC2626}
 @media(max-width:600px){.doc-card{flex-wrap:wrap}.doc-actions{flex-direction:row;width:100%;margin-top:6px}.doc-btn{flex:1}}
+.sb-badge{display:none;margin-left:auto;background:#EF4444;color:#fff;font-size:10px;font-weight:700;border-radius:10px;padding:1px 7px}
+.prazo-card{background:#fff;border:1px solid var(--border);border-left-width:4px;border-radius:12px;padding:12px 14px;display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.prazo-card.st-venc{border-left-color:#DC2626}
+.prazo-card.st-hoje{border-left-color:#D97706}
+.prazo-card.st-perto{border-left-color:#2E4DFF}
+.prazo-card.st-ok{border-left-color:#16A34A}
+.prazo-ico{width:40px;height:40px;flex:none;border-radius:10px;background:var(--blue-lt);display:flex;align-items:center;justify-content:center;font-size:20px}
+.prazo-info{flex:1;min-width:0}
+.prazo-name{font-weight:700;font-size:14px;color:var(--text)}
+.prazo-rec{font-size:9px;background:var(--blue-lt);color:var(--blue);padding:1px 6px;border-radius:8px;font-weight:700;vertical-align:middle}
+.prazo-meta{font-size:11px;color:var(--muted);margin-top:2px}
+.prazo-badge{font-weight:700;padding:1px 7px;border-radius:8px}
+.prazo-badge.st-venc{background:#FEE2E2;color:#DC2626}
+.prazo-badge.st-hoje{background:#FEF3C7;color:#B45309}
+.prazo-badge.st-perto{background:#EEF1FE;color:#2E4DFF}
+.prazo-badge.st-ok{background:#DCFCE7;color:#16A34A}
+.prazo-actions{display:flex;flex-direction:column;gap:6px;flex:none}
+.prazo-btn{font-size:11px;padding:6px 10px;white-space:nowrap;text-decoration:none;text-align:center;display:inline-block}
+.prazo-formbox{background:#fff;border:1px solid var(--border);border-radius:12px;padding:16px;margin-bottom:14px}
+.pf-title{font-family:Georgia,serif;font-size:15px;color:var(--navy);margin-bottom:8px}
+.pf-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+.pf-grid>div{display:flex;flex-direction:column;gap:4px}
+.pf-check{display:block;padding:9px 0;font-size:13px;border-bottom:1px solid var(--border)}
+@media(max-width:600px){.prazo-card{flex-wrap:wrap}.prazo-actions{flex-direction:row;width:100%}.prazo-btn{flex:1}.pf-grid{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -259,7 +283,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
       <div class="sb-item active" data-screen="home" onclick="navigate('home',this)"><span class="sb-icon">⊞</span>Dashboard</div>
       <div class="sb-item" data-screen="cnpj" onclick="navigate('cnpj',this)"><span class="sb-icon">＋</span>Abertura de CNPJ</div>
       <div class="sb-item" onclick="soon()"><span class="sb-icon">👥</span>Clientes</div>
-      <div class="sb-item" onclick="soon()"><span class="sb-icon">📋</span>Obrigações</div>
+      <div class="sb-item" data-screen="obrig" onclick="navigate('obrig',this)"><span class="sb-icon">📋</span>Obrigações<span class="sb-badge" id="obrig-badge"></span></div>
       <div class="sb-item" onclick="soon()"><span class="sb-icon">💰</span>Honorários</div>
       <div class="sb-section">Comunicação</div>
       <div class="sb-item" onclick="soon()"><span class="sb-icon">📅</span>Agendamentos</div>
@@ -306,7 +330,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
             <div class="fc-icon">📁</div>
             <div><div class="fc-title">Documentos</div><div class="fc-desc">Acesse suas propostas em PDF a qualquer momento</div></div>
           </div>
-          <div class="feature-card" onclick="soon()">
+          <div class="feature-card" onclick="navigate('obrig')">
             <div class="fc-icon">📅</div>
             <div><div class="fc-title">Obrigações</div><div class="fc-desc">Acompanhe prazos e evite multas</div></div>
           </div>
@@ -331,7 +355,7 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
               <div><div class="qa-text">Novo atendimento — Abertura CNPJ</div><div class="qa-sub">Diagnóstico de regime + proposta comercial</div></div>
               <span class="qa-arrow">›</span>
             </div>
-            <div class="qa-item" onclick="soon()">
+            <div class="qa-item" onclick="navigate('obrig')">
               <div class="qa-dot" style="background:var(--ok)"></div>
               <div><div class="qa-text">Consultar obrigações do mês</div><div class="qa-sub" id="qa-mes-atual">—</div></div>
               <span class="qa-arrow">›</span>
@@ -423,7 +447,8 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
           <div id="pront-content"></div>
           <div class="btn-row">
             <button class="btn btn-ghost" onclick="goWizard(3)">← Voltar</button>
-            <button class="btn btn-primary" onclick="activeDocId=null;navigate('docs')">Concluir ✓ (ver em Documentos)</button>
+            <button class="btn btn-blue" onclick="sugerirPrazos()">📅 Agendar prazos</button>
+            <button class="btn btn-primary" onclick="activeDocId=null;navigate('docs')">Concluir ✓</button>
           </div>
         </div>
       </div>
@@ -433,6 +458,17 @@ input:focus,select:focus,textarea:focus{border-color:var(--blue);box-shadow:0 0 
         <div class="qa-title">Documentos — Propostas Comerciais</div>
         <p style="font-size:12px;color:var(--muted);margin:2px 0 14px">Toda proposta gerada fica salva aqui, pronta para baixar em PDF, editar ou excluir.</p>
         <div id="docs-list"></div>
+      </div>
+
+      <!-- OBRIGACOES / PRAZOS -->
+      <div class="screen" id="screen-obrig">
+        <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin-bottom:4px">
+          <div class="qa-title" style="margin:0">Obrigações & Prazos</div>
+          <button class="btn btn-blue" style="font-size:12px" onclick="novoPrazoManual()">＋ Novo prazo</button>
+        </div>
+        <p style="font-size:12px;color:var(--muted);margin:2px 0 14px">Abertura de CNPJ, honorários (dia 10) e obrigações (dia 20). Adicione cada prazo ao Google Agenda com 1 clique.</p>
+        <div id="prazo-form"></div>
+        <div id="prazos-list"></div>
       </div>
 
     </div>
@@ -464,13 +500,15 @@ function installPWA(){if(!deferredInstall)return;deferredInstall.prompt();deferr
   const d=new Date();
   const el=document.getElementById('qa-mes-atual');
   if(el)el.textContent=meses[d.getMonth()]+' '+d.getFullYear();
+  try{notifPrazos();}catch(e){}
 })();
 
 function navigate(screen,sbEl,bnEl){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.getElementById('screen-'+screen).classList.add('active');
-  document.getElementById('header-title').textContent={home:'Dashboard',cnpj:'Abertura de CNPJ',docs:'Documentos'}[screen]||screen;
+  document.getElementById('header-title').textContent={home:'Dashboard',cnpj:'Abertura de CNPJ',docs:'Documentos',obrig:'Obrigações'}[screen]||screen;
   if(screen==='docs')renderDocs();
+  if(screen==='obrig')renderPrazos();
   document.querySelectorAll('.sb-item').forEach(el=>el.classList.remove('active'));
   if(sbEl)sbEl.classList.add('active');
   else{const m=document.querySelector(`.sb-item[data-screen="${screen}"]`);if(m)m.classList.add('active')}
@@ -768,6 +806,34 @@ function novoCnpj(){
   loadFormFromState();
   navigate('cnpj');goWizard(1);
 }
+
+/* ===== Obrigacoes & Prazos (agenda) ===== */
+function getPrazos(){try{return JSON.parse(localStorage.getItem('aparat_prazos')||'[]')}catch(e){return[]}}
+function setPrazos(a){try{localStorage.setItem('aparat_prazos',JSON.stringify(a))}catch(e){}}
+function pad2(n){return String(n).padStart(2,'0')}
+function isoHoje(){const h=new Date();return h.getFullYear()+'-'+pad2(h.getMonth()+1)+'-'+pad2(h.getDate())}
+function proxDataDia(dia){const h=new Date();h.setHours(0,0,0,0);let d=new Date(h.getFullYear(),h.getMonth(),dia);if(d<h)d=new Date(h.getFullYear(),h.getMonth()+1,dia);return d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate())}
+function prazoData(p){return p.recorrente?proxDataDia(p.dia):p.data}
+function prazoStatus(iso){const h=new Date();h.setHours(0,0,0,0);const d=new Date(iso+'T00:00:00');const diff=Math.round((d-h)/86400000);if(diff<0)return{lbl:'Vencido ha '+(-diff)+'d',cls:'st-venc',n:diff};if(diff===0)return{lbl:'Vence hoje',cls:'st-hoje',n:0};if(diff<=5)return{lbl:'Em '+diff+(diff>1?' dias':' dia'),cls:'st-perto',n:diff};return{lbl:'Em '+diff+' dias',cls:'st-ok',n:diff}}
+function fmtBR(iso){const d=new Date(iso+'T00:00:00');return pad2(d.getDate())+'/'+pad2(d.getMonth()+1)+'/'+d.getFullYear()}
+const TIPO_LBL={abertura:'Abertura de CNPJ',honorario:'Honorario mensal',obrigacao:'Obrigacoes mensais',outro:'Outro'};
+const TIPO_ICO={abertura:'🏢',honorario:'💰',obrigacao:'📋',outro:'📌'};
+function descPrazo(p){return 'APARAT Contabilidade - '+(TIPO_LBL[p.tipo]||'Prazo')+(p.cliente?' | Cliente: '+p.cliente:'')+(p.recorrente?' | Todo dia '+p.dia:'')+' | Daniel de Andrade Silva (16) 98869-9203'}
+function gcalLink(p){const iso=prazoData(p);const d=iso.replace(/-/g,'');const dt=new Date(iso+'T00:00:00');const nx=new Date(dt.getTime()+86400000);const end=nx.getFullYear()+pad2(nx.getMonth()+1)+pad2(nx.getDate());let url='https://calendar.google.com/calendar/render?action=TEMPLATE'+'&text='+encodeURIComponent((TIPO_ICO[p.tipo]||'')+' '+(p.titulo||TIPO_LBL[p.tipo])+(p.cliente?' - '+p.cliente:''))+'&dates='+d+'/'+end+'&details='+encodeURIComponent(descPrazo(p));if(p.recorrente)url+='&recur='+encodeURIComponent('RRULE:FREQ=MONTHLY;BYMONTHDAY='+p.dia);return url}
+function addPrazo(p){const a=getPrazos();p.id=p.id||('p'+Date.now()+Math.floor(Math.random()*1000));a.push(p);setPrazos(a)}
+function excluirPrazo(id){if(!confirm('Excluir este prazo?'))return;setPrazos(getPrazos().filter(x=>x.id!==id));renderPrazos()}
+function concluirPrazo(id){const a=getPrazos();const p=a.find(x=>x.id===id);if(!p)return;p.done=!p.done;setPrazos(a);renderPrazos()}
+function prazosOrdenados(){return getPrazos().filter(p=>!p.done).map(p=>({p:p,iso:prazoData(p)})).sort(function(a,b){return a.iso<b.iso?-1:1})}
+function atualizaBadge(){const pend=prazosOrdenados().filter(x=>prazoStatus(x.iso).n<=5).length;const b=document.getElementById('obrig-badge');if(b){b.textContent=pend>0?pend:'';b.style.display=pend>0?'inline-block':'none'}const dot=document.querySelector('.notif-dot');if(dot)dot.style.display=pend>0?'block':'none'}
+function notifPrazos(){atualizaBadge();const venc=prazosOrdenados().filter(x=>prazoStatus(x.iso).n<=0);if(venc.length&&('Notification' in window)&&Notification.permission==='granted'){venc.slice(0,3).forEach(function(x){try{new Notification('APARAT - Prazo!',{body:(x.p.titulo||TIPO_LBL[x.p.tipo])+(x.p.cliente?' ('+x.p.cliente+')':'')+' vence '+fmtBR(x.iso),icon:'icon-192.png'})}catch(e){}})}}
+function pedirNotif(){if(('Notification' in window)&&Notification.permission==='default'){Notification.requestPermission().then(function(){notifPrazos()})}else{notifPrazos()}}
+function renderPrazos(){const el=document.getElementById('prazos-list');if(!el)return;const lista=prazosOrdenados();if(!lista.length){el.innerHTML='<div class="docs-empty">Nenhum prazo agendado.<br>Gere uma proposta e clique em <strong>📅 Agendar prazos</strong>, ou use <strong>＋ Novo prazo</strong>.</div>';atualizaBadge();return}
+el.innerHTML=lista.map(function(o){var p=o.p,iso=o.iso,st=prazoStatus(iso);return '<div class="prazo-card '+st.cls+'"><div class="prazo-ico">'+(TIPO_ICO[p.tipo]||'📌')+'</div><div class="prazo-info"><div class="prazo-name">'+(p.titulo||TIPO_LBL[p.tipo])+(p.recorrente?' <span class="prazo-rec">mensal</span>':'')+'</div><div class="prazo-meta">'+(p.cliente?p.cliente+' · ':'')+TIPO_LBL[p.tipo]+'</div><div class="prazo-meta">📆 '+fmtBR(iso)+' · <span class="prazo-badge '+st.cls+'">'+st.lbl+'</span></div></div><div class="prazo-actions"><a class="btn btn-blue prazo-btn" href="'+gcalLink(p)+'" target="_blank" rel="noopener">📅 Google Agenda</a>'+(p.recorrente?'':'<button class="btn btn-ghost prazo-btn" onclick="concluirPrazo(\''+p.id+'\')">✓ Concluir</button>')+'<button class="btn btn-ghost prazo-btn doc-del" onclick="excluirPrazo(\''+p.id+'\')">🗑️</button></div></div>'}).join('');atualizaBadge()}
+function novoPrazoManual(){var c=document.getElementById('prazo-form');c.innerHTML='<div class="prazo-formbox"><div class="pf-title">Novo prazo</div><div class="pf-grid"><div><label class="fl">Cliente</label><input id="np-cli" type="text" placeholder="Nome do cliente"></div><div><label class="fl">Tipo</label><select id="np-tipo" onchange="npTipoChg()"><option value="abertura">Abertura de CNPJ</option><option value="honorario">Honorario mensal (dia 10)</option><option value="obrigacao">Obrigacoes mensais (dia 20)</option><option value="outro">Outro</option></select></div><div><label class="fl">Titulo</label><input id="np-tit" type="text" placeholder="Ex.: Abertura CNPJ"></div><div id="np-data-wrap"><label class="fl">Data</label><input id="np-data" type="date" value="'+isoHoje()+'"></div></div><div class="btn-row"><button class="btn btn-ghost" onclick="document.getElementById(\'prazo-form\').innerHTML=\'\'">Cancelar</button><button class="btn btn-primary" onclick="salvarPrazoManual()">Salvar prazo</button></div></div>'}
+function npTipoChg(){var t=document.getElementById('np-tipo').value,w=document.getElementById('np-data-wrap'),tit=document.getElementById('np-tit');if(t==='honorario'){tit.value='Honorario mensal';w.innerHTML='<label class="fl">Dia do mes</label><input id="np-data" type="number" min="1" max="28" value="10">'}else if(t==='obrigacao'){tit.value='Obrigacoes mensais';w.innerHTML='<label class="fl">Dia do mes</label><input id="np-data" type="number" min="1" max="28" value="20">'}else{if(t==='abertura')tit.value='Abertura de CNPJ';w.innerHTML='<label class="fl">Data</label><input id="np-data" type="date" value="'+isoHoje()+'">'}}
+function salvarPrazoManual(){var cli=document.getElementById('np-cli').value.trim(),tipo=document.getElementById('np-tipo').value,tit=document.getElementById('np-tit').value.trim(),dv=document.getElementById('np-data').value;if(tipo==='honorario'||tipo==='obrigacao'){addPrazo({cliente:cli,tipo:tipo,titulo:tit||TIPO_LBL[tipo],recorrente:true,dia:parseInt(dv)||(tipo==='honorario'?10:20)})}else{if(!dv){alert('Informe a data.');return}addPrazo({cliente:cli,tipo:tipo,titulo:tit||TIPO_LBL[tipo],recorrente:false,data:dv})}document.getElementById('prazo-form').innerHTML='';renderPrazos();pedirNotif()}
+function sugerirPrazos(){navigate('obrig');var nome=S.nome||'';var c=document.getElementById('prazo-form');var d=new Date();d.setDate(d.getDate()+15);var dab=d.getFullYear()+'-'+pad2(d.getMonth()+1)+'-'+pad2(d.getDate());c.innerHTML='<div class="prazo-formbox"><div class="pf-title">📅 Agendar prazos'+(nome?' - '+nome:'')+'</div><p style="font-size:11px;color:var(--muted);margin-bottom:10px">Confirme os prazos deste cliente. Marque os que quer incluir e ajuste as datas.</p><label class="pf-check"><input type="checkbox" id="sg-ab" checked> <strong>Abertura de CNPJ</strong> - data: <input id="sg-ab-data" type="date" value="'+dab+'"></label><label class="pf-check"><input type="checkbox" id="sg-ho" checked> <strong>Honorario mensal</strong> - todo dia <input id="sg-ho-dia" type="number" min="1" max="28" value="10" style="width:64px"></label><label class="pf-check"><input type="checkbox" id="sg-ob" checked> <strong>Obrigacoes mensais</strong> - todo dia <input id="sg-ob-dia" type="number" min="1" max="28" value="20" style="width:64px"></label><div class="btn-row"><button class="btn btn-ghost" onclick="document.getElementById(\'prazo-form\').innerHTML=\'\'">Cancelar</button><button class="btn btn-primary" onclick="salvarSugestao()">Salvar prazos</button></div></div>';window.__sugNome=nome}
+function salvarSugestao(){var nome=window.__sugNome||'';var n=0;if(document.getElementById('sg-ab').checked){addPrazo({cliente:nome,tipo:'abertura',titulo:'Abertura de CNPJ',recorrente:false,data:document.getElementById('sg-ab-data').value});n++}if(document.getElementById('sg-ho').checked){addPrazo({cliente:nome,tipo:'honorario',titulo:'Honorario mensal',recorrente:true,dia:parseInt(document.getElementById('sg-ho-dia').value)||10});n++}if(document.getElementById('sg-ob').checked){addPrazo({cliente:nome,tipo:'obrigacao',titulo:'Obrigacoes mensais',recorrente:true,dia:parseInt(document.getElementById('sg-ob-dia').value)||20});n++}document.getElementById('prazo-form').innerHTML='';renderPrazos();pedirNotif();alert(n+' prazo(s) agendado(s)! Clique em "📅 Google Agenda" em cada um para adicionar ao seu Google Agenda.')}
 </script>
 </body>
 </html>
